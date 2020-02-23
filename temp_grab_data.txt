@@ -1,0 +1,5 @@
+# o means grabbing the fruit
+# x means no fruit is being grabbed
+# this is a temporary file, later replaced.
+o 0342
+x 0374
