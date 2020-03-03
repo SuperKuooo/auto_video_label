@@ -6,7 +6,6 @@
 unsigned long offset = 0;
 unsigned long delta = 0;
 short state = 0;
-char string[32];
 
 void setup() {
   Serial.begin(9600);
@@ -19,39 +18,49 @@ void setup() {
 void loop() {
   bool start_state = digitalRead(START_BUTTON);
   bool grab_state = digitalRead(GRAB_BUTTON);
+  char string[64];
   switch (state) {
     case 0:
       if (start_state) {
+        state = 1;
         digitalWrite(GREEN_LIGHT, HIGH);
-        state++;
+        digitalWrite(RED_LIGHT, LOW);
       }
       break;
     case 1:
       if (!start_state) {
+        state = 2;
         digitalWrite(GREEN_LIGHT, LOW);
-        offset = millis();
-        state++;
+        digitalWrite(RED_LIGHT, HIGH);
+        sprintf(string, "Start Time: %ul", millis());
+        Serial.println(string);
       }
       break;
     case 2:
-      digitalWrite(RED_LIGHT, HIGH);
       if (start_state) {
-        digitalWrite(GREEN_LIGHT, LOW);
-        digitalWrite(RED_LIGHT, LOW);
-        state++;
+        state = 3;
+        digitalWrite(GREEN_LIGHT, HIGH);
+        digitalWrite(RED_LIGHT, HIGH);
         Serial.println("Done Collecting");
-        delay(1000);
       } else if (grab_state) {
-        delta = millis() - offset;
-        sprintf(string, "Time: %ul", delta);
+        state = 4;
+        sprintf(string, "Grab Time: %ul", millis());
         Serial.println(string);
       }
       break;
     case 3:
-      if (start_state) {
+      if (!start_state){
         state = 0;
+        digitalWrite(GREEN_LIGHT, LOW);
+        digitalWrite(RED_LIGHT, LOW);
       }
-      delay(1000);
+      break;
+    case 4:
+      if (!grab_state){
+        state = 2;
+        sprintf(string, "Release Time: %ul", millis());
+        Serial.println(string);
+      }
       break;
   }
 }
